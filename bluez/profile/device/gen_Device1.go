@@ -38,7 +38,6 @@ func NewDevice1(objectPath dbus.ObjectPath) (*Device1, error) {
 
 /*
 Device1 Device hierarchy
-
 */
 type Device1 struct {
 	client                 *bluez.Client
@@ -127,6 +126,13 @@ type Device1Properties struct {
 	Blocked bool
 
 	/*
+		Bonded Indicates if the remote device is bonded. Bonded means
+				the information exchanged on pairing process has been
+				stored and will be persisted.
+	*/
+	Bonded bool
+
+	/*
 		Class The Bluetooth class of device of the remote device.
 	*/
 	Class uint32
@@ -183,7 +189,10 @@ type Device1Properties struct {
 	Name string
 
 	/*
-		Paired Indicates if the remote device is paired.
+		Paired Indicates if the remote device is paired. Paired means
+				the pairing process where devices exchange the
+				information to establish an encrypted connection has
+				been completed.
 	*/
 	Paired bool
 
@@ -192,6 +201,11 @@ type Device1Properties struct {
 				device (inquiry or advertising).
 	*/
 	RSSI int16
+
+	/*
+		Rank Rank of the device in the Set.
+	*/
+	Rank byte
 
 	/*
 		ServiceData Service advertisement data. Keys are the UUIDs in
@@ -204,6 +218,13 @@ type Device1Properties struct {
 				resolved.
 	*/
 	ServicesResolved bool
+
+	/*
+		Sets The object paths of the sets the device belongs to
+				followed by a dictionary which can contain the
+				following:
+	*/
+	Sets []Message
 
 	/*
 		Trusted Indicates if the remote is seen as trusted. This
@@ -230,12 +251,12 @@ type Device1Properties struct {
 	WakeAllowed bool
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *Device1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *Device1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -346,6 +367,20 @@ func (a *Device1) SetBlocked(v bool) error {
 // GetBlocked get Blocked value
 func (a *Device1) GetBlocked() (bool, error) {
 	v, err := a.GetProperty("Blocked")
+	if err != nil {
+		return false, err
+	}
+	return v.Value().(bool), nil
+}
+
+// SetBonded set Bonded value
+func (a *Device1) SetBonded(v bool) error {
+	return a.SetProperty("Bonded", v)
+}
+
+// GetBonded get Bonded value
+func (a *Device1) GetBonded() (bool, error) {
+	v, err := a.GetProperty("Bonded")
 	if err != nil {
 		return false, err
 	}
@@ -478,6 +513,20 @@ func (a *Device1) GetRSSI() (int16, error) {
 	return v.Value().(int16), nil
 }
 
+// SetRank set Rank value
+func (a *Device1) SetRank(v byte) error {
+	return a.SetProperty("Rank", v)
+}
+
+// GetRank get Rank value
+func (a *Device1) GetRank() (byte, error) {
+	v, err := a.GetProperty("Rank")
+	if err != nil {
+		return byte(0), err
+	}
+	return v.Value().(byte), nil
+}
+
 // SetServiceData set ServiceData value
 func (a *Device1) SetServiceData(v map[string]interface{}) error {
 	return a.SetProperty("ServiceData", v)
@@ -504,6 +553,20 @@ func (a *Device1) GetServicesResolved() (bool, error) {
 		return false, err
 	}
 	return v.Value().(bool), nil
+}
+
+// SetSets set Sets value
+func (a *Device1) SetSets(v []Message) error {
+	return a.SetProperty("Sets", v)
+}
+
+// GetSets get Sets value
+func (a *Device1) GetSets() ([]Message, error) {
+	v, err := a.GetProperty("Sets")
+	if err != nil {
+		return []Message{}, err
+	}
+	return v.Value().([]Message), nil
 }
 
 // SetTrusted set Trusted value
@@ -701,28 +764,28 @@ func (a *Device1) UnwatchProperties(ch chan *bluez.PropertyChanged) error {
 
 /*
 Connect 			This is a generic method to connect any profiles
-			the remote device supports that can be connected
-			to and have been flagged as auto-connectable on
-			our side. If only subset of profiles is already
-			connected it will try to connect currently disconnected
-			ones.
-			If at least one profile was connected successfully this
-			method will indicate success.
-			For dual-mode devices only one bearer is connected at
-			time, the conditions are in the following order:
-				1. Connect the disconnected bearer if already
-				connected.
-				2. Connect first the bonded bearer. If no
-				bearers are bonded or both are skip and check
-				latest seen bearer.
-				3. Connect last seen bearer, in case the
-				timestamps are the same BR/EDR takes
-				precedence.
-			Possible errors: org.bluez.Error.NotReady
-					 org.bluez.Error.Failed
-					 org.bluez.Error.InProgress
-					 org.bluez.Error.AlreadyConnected
 
+	the remote device supports that can be connected
+	to and have been flagged as auto-connectable on
+	our side. If only subset of profiles is already
+	connected it will try to connect currently disconnected
+	ones.
+	If at least one profile was connected successfully this
+	method will indicate success.
+	For dual-mode devices only one bearer is connected at
+	time, the conditions are in the following order:
+		1. Connect the disconnected bearer if already
+		connected.
+		2. Connect first the bonded bearer. If no
+		bearers are bonded or both are skip and check
+		latest seen bearer.
+		3. Connect last seen bearer, in case the
+		timestamps are the same BR/EDR takes
+		precedence.
+	Possible errors: org.bluez.Error.NotReady
+			 org.bluez.Error.Failed
+			 org.bluez.Error.InProgress
+			 org.bluez.Error.AlreadyConnected
 */
 func (a *Device1) Connect() error {
 	return a.client.Call("Connect", 0).Store()
@@ -730,17 +793,17 @@ func (a *Device1) Connect() error {
 
 /*
 Disconnect 			This method gracefully disconnects all connected
-			profiles and then terminates low-level ACL connection.
-			ACL connection will be terminated even if some profiles
-			were not disconnected properly e.g. due to misbehaving
-			device.
-			This method can be also used to cancel a preceding
-			Connect call before a reply to it has been received.
-			For non-trusted devices connected over LE bearer calling
-			this method will disable incoming connections until
-			Connect method is called again.
-			Possible errors: org.bluez.Error.NotConnected
 
+	profiles and then terminates low-level ACL connection.
+	ACL connection will be terminated even if some profiles
+	were not disconnected properly e.g. due to misbehaving
+	device.
+	This method can be also used to cancel a preceding
+	Connect call before a reply to it has been received.
+	For non-trusted devices connected over LE bearer calling
+	this method will disable incoming connections until
+	Connect method is called again.
+	Possible errors: org.bluez.Error.NotConnected
 */
 func (a *Device1) Disconnect() error {
 	return a.client.Call("Disconnect", 0).Store()
@@ -748,14 +811,14 @@ func (a *Device1) Disconnect() error {
 
 /*
 ConnectProfile 			This method connects a specific profile of this
-			device. The UUID provided is the remote service
-			UUID for the profile.
-			Possible errors: org.bluez.Error.Failed
-					 org.bluez.Error.InProgress
-					 org.bluez.Error.InvalidArguments
-					 org.bluez.Error.NotAvailable
-					 org.bluez.Error.NotReady
 
+	device. The UUID provided is the remote service
+	UUID for the profile.
+	Possible errors: org.bluez.Error.Failed
+			 org.bluez.Error.InProgress
+			 org.bluez.Error.InvalidArguments
+			 org.bluez.Error.NotAvailable
+			 org.bluez.Error.NotReady
 */
 func (a *Device1) ConnectProfile(uuid string) error {
 	return a.client.Call("ConnectProfile", 0, uuid).Store()
@@ -763,16 +826,16 @@ func (a *Device1) ConnectProfile(uuid string) error {
 
 /*
 DisconnectProfile 			This method disconnects a specific profile of
-			this device. The profile needs to be registered
-			client profile.
-			There is no connection tracking for a profile, so
-			as long as the profile is registered this will always
-			succeed.
-			Possible errors: org.bluez.Error.Failed
-					 org.bluez.Error.InProgress
-					 org.bluez.Error.InvalidArguments
-					 org.bluez.Error.NotSupported
 
+	this device. The profile needs to be registered
+	client profile.
+	There is no connection tracking for a profile, so
+	as long as the profile is registered this will always
+	succeed.
+	Possible errors: org.bluez.Error.Failed
+			 org.bluez.Error.InProgress
+			 org.bluez.Error.InvalidArguments
+			 org.bluez.Error.NotSupported
 */
 func (a *Device1) DisconnectProfile(uuid string) error {
 	return a.client.Call("DisconnectProfile", 0, uuid).Store()
@@ -780,26 +843,26 @@ func (a *Device1) DisconnectProfile(uuid string) error {
 
 /*
 Pair 			This method will connect to the remote device,
-			initiate pairing and then retrieve all SDP records
-			(or GATT primary services).
-			If the application has registered its own agent,
-			then that specific agent will be used. Otherwise
-			it will use the default agent.
-			Only for applications like a pairing wizard it
-			would make sense to have its own agent. In almost
-			all other cases the default agent will handle
-			this just fine.
-			In case there is no application agent and also
-			no default agent present, this method will fail.
-			Possible errors: org.bluez.Error.InvalidArguments
-					 org.bluez.Error.Failed
-					 org.bluez.Error.AlreadyExists
-					 org.bluez.Error.AuthenticationCanceled
-					 org.bluez.Error.AuthenticationFailed
-					 org.bluez.Error.AuthenticationRejected
-					 org.bluez.Error.AuthenticationTimeout
-					 org.bluez.Error.ConnectionAttemptFailed
 
+	initiate pairing and then retrieve all SDP records
+	(or GATT primary services).
+	If the application has registered its own agent,
+	then that specific agent will be used. Otherwise
+	it will use the default agent.
+	Only for applications like a pairing wizard it
+	would make sense to have its own agent. In almost
+	all other cases the default agent will handle
+	this just fine.
+	In case there is no application agent and also
+	no default agent present, this method will fail.
+	Possible errors: org.bluez.Error.InvalidArguments
+			 org.bluez.Error.Failed
+			 org.bluez.Error.AlreadyExists
+			 org.bluez.Error.AuthenticationCanceled
+			 org.bluez.Error.AuthenticationFailed
+			 org.bluez.Error.AuthenticationRejected
+			 org.bluez.Error.AuthenticationTimeout
+			 org.bluez.Error.ConnectionAttemptFailed
 */
 func (a *Device1) Pair() error {
 	return a.client.Call("Pair", 0).Store()
@@ -807,10 +870,10 @@ func (a *Device1) Pair() error {
 
 /*
 CancelPairing 			This method can be used to cancel a pairing
-			operation initiated by the Pair method.
-			Possible errors: org.bluez.Error.DoesNotExist
-					 org.bluez.Error.Failed
 
+	operation initiated by the Pair method.
+	Possible errors: org.bluez.Error.DoesNotExist
+			 org.bluez.Error.Failed
 */
 func (a *Device1) CancelPairing() error {
 	return a.client.Call("CancelPairing", 0).Store()

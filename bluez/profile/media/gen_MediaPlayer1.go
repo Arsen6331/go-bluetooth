@@ -38,7 +38,6 @@ func NewMediaPlayer1(objectPath dbus.ObjectPath) (*MediaPlayer1, error) {
 
 /*
 MediaPlayer1 MediaPlayer1 hierarchy
-
 */
 type MediaPlayer1 struct {
 	client                 *bluez.Client
@@ -203,12 +202,12 @@ type MediaPlayer1Properties struct {
 	Type string
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *MediaPlayer1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *MediaPlayer1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -646,9 +645,9 @@ func (a *MediaPlayer1) UnwatchProperties(ch chan *bluez.PropertyChanged) error {
 
 /*
 Play 			Resume playback.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Play() error {
 	return a.client.Call("Play", 0).Store()
@@ -656,9 +655,9 @@ func (a *MediaPlayer1) Play() error {
 
 /*
 Pause 			Pause playback.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Pause() error {
 	return a.client.Call("Pause", 0).Store()
@@ -666,9 +665,9 @@ func (a *MediaPlayer1) Pause() error {
 
 /*
 Stop 			Stop playback.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Stop() error {
 	return a.client.Call("Stop", 0).Store()
@@ -676,9 +675,9 @@ func (a *MediaPlayer1) Stop() error {
 
 /*
 Next 			Next item.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Next() error {
 	return a.client.Call("Next", 0).Store()
@@ -686,9 +685,9 @@ func (a *MediaPlayer1) Next() error {
 
 /*
 Previous 			Previous item.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Previous() error {
 	return a.client.Call("Previous", 0).Store()
@@ -696,10 +695,10 @@ func (a *MediaPlayer1) Previous() error {
 
 /*
 FastForward 			Fast forward playback, this action is only stopped
-			when another method in this interface is called.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	when another method in this interface is called.
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) FastForward() error {
 	return a.client.Call("FastForward", 0).Store()
@@ -707,10 +706,10 @@ func (a *MediaPlayer1) FastForward() error {
 
 /*
 Rewind 			Rewind playback, this action is only stopped
-			when another method in this interface is called.
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	when another method in this interface is called.
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Rewind() error {
 	return a.client.Call("Rewind", 0).Store()
@@ -718,12 +717,12 @@ func (a *MediaPlayer1) Rewind() error {
 
 /*
 Press 			Press a specific key to send as passthrough command.
-			The key will be released automatically. Use Hold()
-			instead if the intention is to hold down the key.
-			Possible Errors: org.bluez.Error.InvalidArguments
-					 org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	The key will be released automatically. Use Hold()
+	instead if the intention is to hold down the key.
+	Possible Errors: org.bluez.Error.InvalidArguments
+			 org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Press(avc_key byte) error {
 	return a.client.Call("Press", 0, avc_key).Store()
@@ -731,14 +730,14 @@ func (a *MediaPlayer1) Press(avc_key byte) error {
 
 /*
 Hold 			Press and hold a specific key to send as passthrough
-			command. It is your responsibility to make sure that
-			Release() is called after calling this method. The held
-			key will also be released when any other method in this
-			interface is called.
-			Possible Errors: org.bluez.Error.InvalidArguments
-					 org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	command. It is your responsibility to make sure that
+	Release() is called after calling this method. The held
+	key will also be released when any other method in this
+	interface is called.
+	Possible Errors: org.bluez.Error.InvalidArguments
+			 org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Hold(avc_key byte) error {
 	return a.client.Call("Hold", 0, avc_key).Store()
@@ -746,9 +745,9 @@ func (a *MediaPlayer1) Hold(avc_key byte) error {
 
 /*
 Release 			Release the previously held key invoked using Hold().
-			Possible Errors: org.bluez.Error.NotSupported
-					 org.bluez.Error.Failed
 
+	Possible Errors: org.bluez.Error.NotSupported
+			 org.bluez.Error.Failed
 */
 func (a *MediaPlayer1) Release() error {
 	return a.client.Call("Release", 0).Store()

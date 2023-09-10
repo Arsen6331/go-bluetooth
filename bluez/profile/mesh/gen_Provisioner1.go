@@ -39,7 +39,6 @@ func NewProvisioner1(servicePath string, objectPath dbus.ObjectPath) (*Provision
 
 /*
 Provisioner1 Mesh Provisioner Hierarchy
-
 */
 type Provisioner1 struct {
 	client                 *bluez.Client
@@ -55,12 +54,12 @@ type Provisioner1Properties struct {
 	lock sync.RWMutex `dbus:"ignore"`
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *Provisioner1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *Provisioner1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -204,23 +203,29 @@ func (a *Provisioner1) UnwatchProperties(ch chan *bluez.PropertyChanged) error {
 
 /*
 ScanResult 		The method is called from the bluetooth-meshd daemon when a
-		unique UUID has been seen during UnprovisionedScan() for
-		unprovsioned devices.
-		The rssi parameter is a signed, normalized measurement of the
-		signal strength of the recieved unprovisioned beacon.
-		The data parameter is a variable length byte array, that may
-		have 1, 2 or 3 distinct fields contained in it including the 16
-		byte remote device UUID (always), a 16 bit mask of OOB
-		authentication flags (optional), and a 32 bit URI hash (if URI
-		bit set in OOB mask). Whether these fields exist or not is a
-		decision of the remote device.
-		The options parameter is a dictionary that may contain
-		additional scan result info (currently an empty placeholder for
-		forward compatibility).
-		If a beacon with a UUID that has already been reported is
-		recieved by the daemon, it will be silently discarded unless it
-		was recieved at a higher rssi power level.
 
+	unique UUID has been seen during UnprovisionedScan() for
+	unprovsioned devices.
+	The rssi parameter is a signed, normalized measurement of the
+	signal strength of the recieved unprovisioned beacon.
+	The data parameter is a variable length byte array, that may
+	have 1, 2 or 3 distinct fields contained in it including the 16
+	byte remote device UUID (always), a 16 bit mask of OOB
+	authentication flags (optional), and a 32 bit URI hash (if URI
+	bit set in OOB mask). Whether these fields exist or not is a
+	decision of the unprovisioned device.
+	The options parameter is a dictionary that may contain
+	additional optional configuration info:
+	uint16 Server
+		Specifies the remote server that received the
+		Unprovisioned beacon. If not present, beacon was
+		received locally.
+	uint8 array ExtendedData
+		If Extended data was requested during scanning, any
+		received data will be returned here.
+	If a beacon with a UUID that has already been reported is
+	recieved by the daemon, it will be silently discarded unless it
+	was recieved at a higher rssi power level.
 */
 func (a *Provisioner1) ScanResult(rssi int16, data []byte, options map[string]interface{}) error {
 	return a.client.Call("ScanResult", 0, rssi, data, options).Store()
@@ -228,16 +233,16 @@ func (a *Provisioner1) ScanResult(rssi int16, data []byte, options map[string]in
 
 /*
 RequestProvData 		This method is implemented by a Provisioner capable application
-		and is called when the remote device has been fully
-		authenticated and confirmed.
-		The count parameter is the number of consecutive unicast
-		addresses the remote device is requesting.
-		Return Parameters are from the Mesh Profile Spec:
-		net_index - Subnet index of the net_key
-		unicast - Primary Unicast address of the new node
-		PossibleErrors:
-			org.bluez.mesh.Error.Abort
 
+	and is called when the remote device has been fully
+	authenticated and confirmed.
+	The count parameter is the number of consecutive unicast
+	addresses the remote device is requesting.
+	Return Parameters are from the Mesh Profile Spec:
+	net_index - Subnet index of the net_key
+	unicast - Primary Unicast address of the new node
+	PossibleErrors:
+		org.bluez.mesh.Error.Abort
 */
 func (a *Provisioner1) RequestProvData(count uint8) (uint16, error) {
 	var val0 uint16
@@ -246,32 +251,94 @@ func (a *Provisioner1) RequestProvData(count uint8) (uint16, error) {
 }
 
 /*
-AddNodeComplete 		This method is called when the node provisioning initiated
-		by an AddNode() method call successfully completed.
-		The unicast parameter is the primary address that has been
-		assigned to the new node, and the address of it's config server.
-		The count parameter is the number of unicast addresses assigned
-		to the new node.
-		The new node may now be sent messages using the credentials
-		supplied by the RequestProvData method.
+RequestReprovData 		This method is implemented by a Provisioner capable application
 
+	and is called when the remote node being reprovisioned has been
+	fully authenticated and confirmed. This method will only be
+	called if the NPPI-1 procedure (Node Address Refresh) is being
+	performed.
+	The original parameter is the current unicast address of the
+	node being reprovisioned.
+	The count parameter is the number of consecutive unicast
+	addresses the remote node is requesting.
+	Return Parameter:
+	unicast - Primary Unicast address of the new node
+	PossibleErrors:
+		org.bluez.mesh.Error.Abort
+*/
+func (a *Provisioner1) RequestReprovData(original uint16, count uint8) (uint16, error) {
+	var val0 uint16
+	err := a.client.Call("RequestReprovData", 0, original, count).Store(&val0)
+	return val0, err
+}
+
+/*
+AddNodeComplete 		This method is called when the node provisioning initiated
+
+	by an AddNode() method call successfully completed.
+	The unicast parameter is the primary address that has been
+	assigned to the new node, and the address of it's config server.
+	The count parameter is the number of unicast addresses assigned
+	to the new node.
+	The new node may now be sent messages using the credentials
+	supplied by the RequestProvData method.
 */
 func (a *Provisioner1) AddNodeComplete(uuid []byte, unicast uint16, count uint8) error {
 	return a.client.Call("AddNodeComplete", 0, uuid, unicast, count).Store()
 }
 
 /*
-AddNodeFailed 		This method is called when the node provisioning initiated by
-		AddNode() has failed. Depending on how far Provisioning
-		proceeded before failing, some cleanup of cached data may be
-		required.
-		The reason parameter identifies the reason for provisioning
-		failure. The defined values are: "aborted", "timeout",
-		"bad-pdu", "confirmation-failed", "out-of-resources",
-		"decryption-error", "unexpected-error",
-		"cannot-assign-addresses".
+ReprovComplete 		This method is called when the node Reprovisioning initiated
 
+	by a Reprovision() method call successfully completed.
+	The original parameter is the former primary address of the
+	node that has been reprovisioned.
+	The nppi parameter indicates which NPPI procedure was performed.
+	If procedure 1 or 2 was performed, the node is materially
+	different than it was before reprovisioning, and Composition,
+	Bindings, Publication and Subscription settings should be
+	refreshed.
+	The unicast parameter is the new primary address that has been
+	assigned to the node, If NPPI procedure 1 was performed this
+	value may be different from the original. If procedure 0 or 2
+	was performed, the original and new primary address should be
+	the same.
+	The count parameter is the number of unicast addresses assigned
+	to the node.
+	The node may now be sent messages using the credentials
+	supplied by the RequestReprovData method.
+*/
+func (a *Provisioner1) ReprovComplete(original uint16, nppi uint8, unicast uint16, count uint8) error {
+	return a.client.Call("ReprovComplete", 0, original, nppi, unicast, count).Store()
+}
+
+/*
+AddNodeFailed 		This method is called when the node provisioning initiated by
+
+	AddNode() has failed. Depending on how far Provisioning
+	proceeded before failing, some cleanup of cached data may be
+	required.
+	The reason parameter identifies the reason for provisioning
+	failure. The defined values are: "aborted", "timeout",
+	"bad-pdu", "confirmation-failed", "out-of-resources",
+	"decryption-error", "unexpected-error",
+	"cannot-assign-addresses".
 */
 func (a *Provisioner1) AddNodeFailed(uuid []byte, reason string) error {
 	return a.client.Call("AddNodeFailed", 0, uuid, reason).Store()
+}
+
+/*
+ReprovFailed 		This method is called when node reprovisioning initiated by
+
+	Reprovision() has failed. If reprovisioning has failed, the
+	prior credentials of the remote node may still be valid.
+	The reason parameter identifies the reason for provisioning
+	failure. The defined values are: "aborted", "timeout",
+	"bad-pdu", "confirmation-failed", "out-of-resources",
+	"decryption-error", "unexpected-error",
+	"cannot-assign-addresses".
+*/
+func (a *Provisioner1) ReprovFailed(unicast uint16, reason string) error {
+	return a.client.Call("ReprovFailed", 0, unicast, reason).Store()
 }

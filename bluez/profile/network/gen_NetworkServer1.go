@@ -38,7 +38,6 @@ func NewNetworkServer1(objectPath dbus.ObjectPath) (*NetworkServer1, error) {
 
 /*
 NetworkServer1 Network server hierarchy
-
 */
 type NetworkServer1 struct {
 	client                 *bluez.Client
@@ -54,12 +53,12 @@ type NetworkServer1Properties struct {
 	lock sync.RWMutex `dbus:"ignore"`
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *NetworkServer1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *NetworkServer1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -203,14 +202,14 @@ func (a *NetworkServer1) UnwatchProperties(ch chan *bluez.PropertyChanged) error
 
 /*
 Register 			Register server for the provided UUID. Every new
-			connection to this server will be added the bridge
-			interface.
-			Valid UUIDs are "gn", "panu" or "nap".
-			Initially no network server SDP is provided. Only
-			after this method a SDP record will be available
-			and the BNEP server will be ready for incoming
-			connections.
 
+	connection to this server will be added the bridge
+	interface.
+	Valid UUIDs are "gn", "panu" or "nap".
+	Initially no network server SDP is provided. Only
+	after this method a SDP record will be available
+	and the BNEP server will be ready for incoming
+	connections.
 */
 func (a *NetworkServer1) Register(uuid string, bridge string) error {
 	return a.client.Call("Register", 0, uuid, bridge).Store()
@@ -218,9 +217,9 @@ func (a *NetworkServer1) Register(uuid string, bridge string) error {
 
 /*
 Unregister 			Unregister the server for provided UUID.
-			All servers will be automatically unregistered when
-			the calling application terminates.
 
+	All servers will be automatically unregistered when
+	the calling application terminates.
 */
 func (a *NetworkServer1) Unregister(uuid string) error {
 	return a.client.Call("Unregister", 0, uuid).Store()

@@ -40,7 +40,6 @@ func NewGattDescriptor1(objectPath dbus.ObjectPath) (*GattDescriptor1, error) {
 GattDescriptor1 Characteristic Descriptors hierarchy
 
 Local or remote GATT characteristic descriptors hierarchy.
-
 */
 type GattDescriptor1 struct {
 	client                 *bluez.Client
@@ -79,7 +78,9 @@ type GattDescriptor1Properties struct {
 	Flags []string
 
 	/*
-		Handle Characteristic handle. When available in the server it
+		Handle [read-only] (Client Only)
+
+				Characteristic handle. When available in the server it
 				would attempt to use to allocate into the database
 				which may fail, to auto allocate the value 0x0000
 				shall be used which will cause the allocated handle to
@@ -100,12 +101,12 @@ type GattDescriptor1Properties struct {
 	Value []byte `dbus:"emit"`
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *GattDescriptor1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *GattDescriptor1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -299,17 +300,17 @@ func (a *GattDescriptor1) UnwatchProperties(ch chan *bluez.PropertyChanged) erro
 
 /*
 ReadValue 			Issues a request to read the value of the
-			characteristic and returns the value if the
-			operation was successful.
-			Possible options: "offset": Start offset
-					  "device": Device path (Server only)
-					  "link": Link type (Server only)
-			Possible Errors: org.bluez.Error.Failed
-					 org.bluez.Error.InProgress
-					 org.bluez.Error.NotPermitted
-					 org.bluez.Error.NotAuthorized
-					 org.bluez.Error.NotSupported
 
+	characteristic and returns the value if the
+	operation was successful.
+	Possible options: "offset": Start offset
+			  "device": Device path (Server only)
+			  "link": Link type (Server only)
+	Possible Errors: org.bluez.Error.Failed
+			 org.bluez.Error.InProgress
+			 org.bluez.Error.NotPermitted
+			 org.bluez.Error.NotAuthorized
+			 org.bluez.Error.NotSupported
 */
 func (a *GattDescriptor1) ReadValue(flags map[string]interface{}) ([]byte, error) {
 	val0 := []byte{}
@@ -319,20 +320,20 @@ func (a *GattDescriptor1) ReadValue(flags map[string]interface{}) ([]byte, error
 
 /*
 WriteValue 			Issues a request to write the value of the
-			characteristic.
-			Possible options: "offset": Start offset
-					  "device": Device path (Server only)
-					  "link": Link type (Server only)
-					  "prepare-authorize": boolean Is prepare
-							       authorization
-							       request
-			Possible Errors: org.bluez.Error.Failed
-					 org.bluez.Error.InProgress
-					 org.bluez.Error.NotPermitted
-					 org.bluez.Error.InvalidValueLength
-					 org.bluez.Error.NotAuthorized
-					 org.bluez.Error.NotSupported
 
+	characteristic.
+	Possible options: "offset": Start offset
+			  "device": Device path (Server only)
+			  "link": Link type (Server only)
+			  "prepare-authorize": boolean Is prepare
+					       authorization
+					       request
+	Possible Errors: org.bluez.Error.Failed
+			 org.bluez.Error.InProgress
+			 org.bluez.Error.NotPermitted
+			 org.bluez.Error.InvalidValueLength
+			 org.bluez.Error.NotAuthorized
+			 org.bluez.Error.NotSupported
 */
 func (a *GattDescriptor1) WriteValue(value []byte, flags map[string]interface{}) error {
 	return a.client.Call("WriteValue", 0, value, flags).Store()

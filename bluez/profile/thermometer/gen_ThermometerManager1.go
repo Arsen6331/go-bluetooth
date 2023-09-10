@@ -38,7 +38,6 @@ func NewThermometerManager1(objectPath dbus.ObjectPath) (*ThermometerManager1, e
 
 /*
 ThermometerManager1 Health Thermometer Manager hierarchy
-
 */
 type ThermometerManager1 struct {
 	client                 *bluez.Client
@@ -54,12 +53,12 @@ type ThermometerManager1Properties struct {
 	lock sync.RWMutex `dbus:"ignore"`
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *ThermometerManager1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *ThermometerManager1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -203,10 +202,10 @@ func (a *ThermometerManager1) UnwatchProperties(ch chan *bluez.PropertyChanged) 
 
 /*
 RegisterWatcher 			Registers a watcher to monitor scanned measurements.
-			This agent will be notified about final temperature
-			measurements.
-			Possible Errors: org.bluez.Error.InvalidArguments
 
+	This agent will be notified about final temperature
+	measurements.
+	Possible Errors: org.bluez.Error.InvalidArguments
 */
 func (a *ThermometerManager1) RegisterWatcher(agent dbus.ObjectPath) error {
 	return a.client.Call("RegisterWatcher", 0, agent).Store()
@@ -214,7 +213,6 @@ func (a *ThermometerManager1) RegisterWatcher(agent dbus.ObjectPath) error {
 
 /*
 UnregisterWatcher 			Unregisters a watcher.
-
 */
 func (a *ThermometerManager1) UnregisterWatcher(agent dbus.ObjectPath) error {
 	return a.client.Call("UnregisterWatcher", 0, agent).Store()
@@ -222,10 +220,10 @@ func (a *ThermometerManager1) UnregisterWatcher(agent dbus.ObjectPath) error {
 
 /*
 EnableIntermediateMeasurement 			Enables intermediate measurement notifications
-			for this agent. Intermediate measurements will
-			be enabled only for thermometers which support it.
-			Possible Errors: org.bluez.Error.InvalidArguments
 
+	for this agent. Intermediate measurements will
+	be enabled only for thermometers which support it.
+	Possible Errors: org.bluez.Error.InvalidArguments
 */
 func (a *ThermometerManager1) EnableIntermediateMeasurement(agent dbus.ObjectPath) error {
 	return a.client.Call("EnableIntermediateMeasurement", 0, agent).Store()
@@ -233,12 +231,12 @@ func (a *ThermometerManager1) EnableIntermediateMeasurement(agent dbus.ObjectPat
 
 /*
 DisableIntermediateMeasurement 			Disables intermediate measurement notifications
-			for this agent. It will disable notifications in
-			thermometers when the last agent removes the
-			watcher for intermediate measurements.
-			Possible Errors: org.bluez.Error.InvalidArguments
-					org.bluez.Error.NotFound
 
+	for this agent. It will disable notifications in
+	thermometers when the last agent removes the
+	watcher for intermediate measurements.
+	Possible Errors: org.bluez.Error.InvalidArguments
+			org.bluez.Error.NotFound
 */
 func (a *ThermometerManager1) DisableIntermediateMeasurement(agent dbus.ObjectPath) error {
 	return a.client.Call("DisableIntermediateMeasurement", 0, agent).Store()

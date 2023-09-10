@@ -38,7 +38,6 @@ func NewHealthChannel1(objectPath dbus.ObjectPath) (*HealthChannel1, error) {
 
 /*
 HealthChannel1 HealthChannel hierarchy
-
 */
 type HealthChannel1 struct {
 	client                 *bluez.Client
@@ -73,12 +72,12 @@ type HealthChannel1Properties struct {
 	Type string
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *HealthChannel1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *HealthChannel1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -264,11 +263,11 @@ func (a *HealthChannel1) UnwatchProperties(ch chan *bluez.PropertyChanged) error
 
 /*
 Acquire 			Returns the file descriptor for this data channel. If
-			the data channel is not connected it will also
-			reconnect.
-			Possible Errors: org.bluez.Error.NotConnected
-					 org.bluez.Error.NotAllowed
 
+	the data channel is not connected it will also
+	reconnect.
+	Possible Errors: org.bluez.Error.NotConnected
+			 org.bluez.Error.NotAllowed
 */
 func (a *HealthChannel1) Acquire() (dbus.UnixFD, error) {
 	var val0 dbus.UnixFD
@@ -278,10 +277,10 @@ func (a *HealthChannel1) Acquire() (dbus.UnixFD, error) {
 
 /*
 Release 			Releases the fd. Application should also need to
-			close() it.
-			Possible Errors: org.bluez.Error.NotAcquired
-					 org.bluez.Error.NotAllowed
 
+	close() it.
+	Possible Errors: org.bluez.Error.NotAcquired
+			 org.bluez.Error.NotAllowed
 */
 func (a *HealthChannel1) Release() error {
 	return a.client.Call("Release", 0).Store()

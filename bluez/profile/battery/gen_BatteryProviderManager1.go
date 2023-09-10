@@ -47,7 +47,6 @@ on org.bluez.Battery1 interface.
 
 BlueZ will stop monitoring these exposed and removed objects after
 UnregisterBatteryProvider is called for that provider ID.
-
 */
 type BatteryProviderManager1 struct {
 	client                 *bluez.Client
@@ -63,12 +62,12 @@ type BatteryProviderManager1Properties struct {
 	lock sync.RWMutex `dbus:"ignore"`
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *BatteryProviderManager1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *BatteryProviderManager1Properties) Unlock() {
 	p.lock.Unlock()
 }
@@ -212,9 +211,9 @@ func (a *BatteryProviderManager1) UnwatchProperties(ch chan *bluez.PropertyChang
 
 /*
 RegisterBatteryProvider 			This registers a battery provider. A registered
-			battery provider can then expose objects with
-			org.bluez.BatteryProvider1 interface described below.
 
+	battery provider can then expose objects with
+	org.bluez.BatteryProvider1 interface described below.
 */
 func (a *BatteryProviderManager1) RegisterBatteryProvider(provider dbus.ObjectPath) error {
 	return a.client.Call("RegisterBatteryProvider", 0, provider).Store()
@@ -222,9 +221,9 @@ func (a *BatteryProviderManager1) RegisterBatteryProvider(provider dbus.ObjectPa
 
 /*
 UnregisterBatteryProvider 			This unregisters a battery provider. After
-			unregistration, the BatteryProvider1 objects provided
-			by this client are ignored by BlueZ.
 
+	unregistration, the BatteryProvider1 objects provided
+	by this client are ignored by BlueZ.
 */
 func (a *BatteryProviderManager1) UnregisterBatteryProvider(provider dbus.ObjectPath) error {
 	return a.client.Call("UnregisterBatteryProvider", 0, provider).Store()

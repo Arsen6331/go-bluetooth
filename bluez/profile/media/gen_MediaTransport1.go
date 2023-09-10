@@ -38,7 +38,6 @@ func NewMediaTransport1(objectPath dbus.ObjectPath) (*MediaTransport1, error) {
 
 /*
 MediaTransport1 MediaTransport1 hierarchy
-
 */
 type MediaTransport1 struct {
 	client                 *bluez.Client
@@ -52,6 +51,18 @@ type MediaTransport1 struct {
 // MediaTransport1Properties contains the exposed properties of an interface
 type MediaTransport1Properties struct {
 	lock sync.RWMutex `dbus:"ignore"`
+
+	/*
+		CIG Indicates configured QoS CIG.
+				Only present when QoS is configured.
+	*/
+	CIG byte
+
+	/*
+		CIS Indicates configured QoS CIS.
+				Only present when QoS is configured.
+	*/
+	CIS byte
 
 	/*
 		Codec Assigned number of codec that the transport support.
@@ -85,6 +96,58 @@ type MediaTransport1Properties struct {
 	Endpoint dbus.ObjectPath
 
 	/*
+		Framing Indicates configured QoS framing.
+				Only present when QoS is configured.
+	*/
+	Framing bool
+
+	/*
+		Interval Indicates configured QoS interval.
+				Only present when QoS is configured.
+	*/
+	Interval uint32
+
+	/*
+		Latency Indicates configured QoS latency.
+				Only present when QoS is configured.
+	*/
+	Latency uint16
+
+	/*
+		Links Linked transport objects which the transport is
+				associated with.
+	*/
+	Links []dbus.ObjectPath
+
+	/*
+		Location Indicates transport Audio Location.
+	*/
+	Location uint32
+
+	/*
+		Metadata Indicates transport Metadata.
+	*/
+	Metadata []byte
+
+	/*
+		PHY Indicates configured QoS PHY.
+				Only present when QoS is configured.
+	*/
+	PHY byte
+
+	/*
+		Retransmissions Indicates configured QoS retransmissions.
+				Only present when QoS is configured.
+	*/
+	Retransmissions byte
+
+	/*
+		SDU Indicates configured QoS SDU.
+				Only present when QoS is configured.
+	*/
+	SDU uint16
+
+	/*
 		State Indicates the state of the transport. Possible
 				values are:
 					"idle": not streaming
@@ -108,14 +171,42 @@ type MediaTransport1Properties struct {
 	Volume uint16
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *MediaTransport1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *MediaTransport1Properties) Unlock() {
 	p.lock.Unlock()
+}
+
+// SetCIG set CIG value
+func (a *MediaTransport1) SetCIG(v byte) error {
+	return a.SetProperty("CIG", v)
+}
+
+// GetCIG get CIG value
+func (a *MediaTransport1) GetCIG() (byte, error) {
+	v, err := a.GetProperty("CIG")
+	if err != nil {
+		return byte(0), err
+	}
+	return v.Value().(byte), nil
+}
+
+// SetCIS set CIS value
+func (a *MediaTransport1) SetCIS(v byte) error {
+	return a.SetProperty("CIS", v)
+}
+
+// GetCIS get CIS value
+func (a *MediaTransport1) GetCIS() (byte, error) {
+	v, err := a.GetProperty("CIS")
+	if err != nil {
+		return byte(0), err
+	}
+	return v.Value().(byte), nil
 }
 
 // SetCodec set Codec value
@@ -186,6 +277,132 @@ func (a *MediaTransport1) GetEndpoint() (dbus.ObjectPath, error) {
 		return dbus.ObjectPath(""), err
 	}
 	return v.Value().(dbus.ObjectPath), nil
+}
+
+// SetFraming set Framing value
+func (a *MediaTransport1) SetFraming(v bool) error {
+	return a.SetProperty("Framing", v)
+}
+
+// GetFraming get Framing value
+func (a *MediaTransport1) GetFraming() (bool, error) {
+	v, err := a.GetProperty("Framing")
+	if err != nil {
+		return false, err
+	}
+	return v.Value().(bool), nil
+}
+
+// SetInterval set Interval value
+func (a *MediaTransport1) SetInterval(v uint32) error {
+	return a.SetProperty("Interval", v)
+}
+
+// GetInterval get Interval value
+func (a *MediaTransport1) GetInterval() (uint32, error) {
+	v, err := a.GetProperty("Interval")
+	if err != nil {
+		return uint32(0), err
+	}
+	return v.Value().(uint32), nil
+}
+
+// SetLatency set Latency value
+func (a *MediaTransport1) SetLatency(v uint16) error {
+	return a.SetProperty("Latency", v)
+}
+
+// GetLatency get Latency value
+func (a *MediaTransport1) GetLatency() (uint16, error) {
+	v, err := a.GetProperty("Latency")
+	if err != nil {
+		return uint16(0), err
+	}
+	return v.Value().(uint16), nil
+}
+
+// SetLinks set Links value
+func (a *MediaTransport1) SetLinks(v []dbus.ObjectPath) error {
+	return a.SetProperty("Links", v)
+}
+
+// GetLinks get Links value
+func (a *MediaTransport1) GetLinks() ([]dbus.ObjectPath, error) {
+	v, err := a.GetProperty("Links")
+	if err != nil {
+		return []dbus.ObjectPath{}, err
+	}
+	return v.Value().([]dbus.ObjectPath), nil
+}
+
+// SetLocation set Location value
+func (a *MediaTransport1) SetLocation(v uint32) error {
+	return a.SetProperty("Location", v)
+}
+
+// GetLocation get Location value
+func (a *MediaTransport1) GetLocation() (uint32, error) {
+	v, err := a.GetProperty("Location")
+	if err != nil {
+		return uint32(0), err
+	}
+	return v.Value().(uint32), nil
+}
+
+// SetMetadata set Metadata value
+func (a *MediaTransport1) SetMetadata(v []byte) error {
+	return a.SetProperty("Metadata", v)
+}
+
+// GetMetadata get Metadata value
+func (a *MediaTransport1) GetMetadata() ([]byte, error) {
+	v, err := a.GetProperty("Metadata")
+	if err != nil {
+		return []byte{}, err
+	}
+	return v.Value().([]byte), nil
+}
+
+// SetPHY set PHY value
+func (a *MediaTransport1) SetPHY(v byte) error {
+	return a.SetProperty("PHY", v)
+}
+
+// GetPHY get PHY value
+func (a *MediaTransport1) GetPHY() (byte, error) {
+	v, err := a.GetProperty("PHY")
+	if err != nil {
+		return byte(0), err
+	}
+	return v.Value().(byte), nil
+}
+
+// SetRetransmissions set Retransmissions value
+func (a *MediaTransport1) SetRetransmissions(v byte) error {
+	return a.SetProperty("Retransmissions", v)
+}
+
+// GetRetransmissions get Retransmissions value
+func (a *MediaTransport1) GetRetransmissions() (byte, error) {
+	v, err := a.GetProperty("Retransmissions")
+	if err != nil {
+		return byte(0), err
+	}
+	return v.Value().(byte), nil
+}
+
+// SetSDU set SDU value
+func (a *MediaTransport1) SetSDU(v uint16) error {
+	return a.SetProperty("SDU", v)
+}
+
+// GetSDU get SDU value
+func (a *MediaTransport1) GetSDU() (uint16, error) {
+	v, err := a.GetProperty("SDU")
+	if err != nil {
+		return uint16(0), err
+	}
+	return v.Value().(uint16), nil
 }
 
 // SetState set State value
@@ -369,10 +586,10 @@ func (a *MediaTransport1) UnwatchProperties(ch chan *bluez.PropertyChanged) erro
 
 /*
 Acquire 			Acquire transport file descriptor and the MTU for read
-			and write respectively.
-			Possible Errors: org.bluez.Error.NotAuthorized
-					 org.bluez.Error.Failed
 
+	and write respectively.
+	Possible Errors: org.bluez.Error.NotAuthorized
+			 org.bluez.Error.Failed
 */
 func (a *MediaTransport1) Acquire() (dbus.UnixFD, uint16, uint16, error) {
 	var val0 dbus.UnixFD
@@ -384,14 +601,14 @@ func (a *MediaTransport1) Acquire() (dbus.UnixFD, uint16, uint16, error) {
 
 /*
 TryAcquire 			Acquire transport file descriptor only if the transport
-			is in "pending" state at the time the message is
-			received by BlueZ. Otherwise no request will be sent
-			to the remote device and the function will just fail
-			with org.bluez.Error.NotAvailable.
-			Possible Errors: org.bluez.Error.NotAuthorized
-					 org.bluez.Error.Failed
-					 org.bluez.Error.NotAvailable
 
+	is in "pending" state at the time the message is
+	received by BlueZ. Otherwise no request will be sent
+	to the remote device and the function will just fail
+	with org.bluez.Error.NotAvailable.
+	Possible Errors: org.bluez.Error.NotAuthorized
+			 org.bluez.Error.Failed
+			 org.bluez.Error.NotAvailable
 */
 func (a *MediaTransport1) TryAcquire() (dbus.UnixFD, uint16, uint16, error) {
 	var val0 dbus.UnixFD
@@ -403,7 +620,6 @@ func (a *MediaTransport1) TryAcquire() (dbus.UnixFD, uint16, uint16, error) {
 
 /*
 Release 			Releases file descriptor.
-
 */
 func (a *MediaTransport1) Release() error {
 	return a.client.Call("Release", 0).Store()

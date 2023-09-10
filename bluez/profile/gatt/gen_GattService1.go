@@ -45,7 +45,6 @@ is freely definable.
 External applications implementing local services must register the services
 using GattManager1 registration method and must implement the methods and
 properties defined in GattService1 interface.
-
 */
 type GattService1 struct {
 	client                 *bluez.Client
@@ -73,7 +72,9 @@ type GattService1Properties struct {
 	Device dbus.ObjectPath `dbus:"ignore=IsService"`
 
 	/*
-		Handle Service handle. When available in the server it
+		Handle [read-only] (Client Only)
+
+				Service handle. When available in the server it
 				would attempt to use to allocate into the database
 				which may fail, to auto allocate the value 0x0000
 				shall be used which will cause the allocated handle to
@@ -104,12 +105,12 @@ type GattService1Properties struct {
 	UUID string
 }
 
-//Lock access to properties
+// Lock access to properties
 func (p *GattService1Properties) Lock() {
 	p.lock.Lock()
 }
 
-//Unlock access to properties
+// Unlock access to properties
 func (p *GattService1Properties) Unlock() {
 	p.lock.Unlock()
 }
